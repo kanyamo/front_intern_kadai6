@@ -1,1 +1,0 @@
-# front_intern_kadai6
