@@ -56,12 +56,12 @@ const sort = (real_estate_data) => {
         switch(order_label) {
             case "deal-higher":
                 resolve(data.sort((x, y) => {
-                    return y.TradePrice - x.TradePrice
+                    return Number(y.TradePrice) - Number(x.TradePrice)
                 }));
                 break;
             case "deal-lower":
                 resolve(data.sort((x, y) => {
-                    return x.PriceTrade - y.PriceTrade
+                    return Number(x.PriceTrade) - Number(y.PriceTrade)
                 }));
                 break;    
             case "new":
@@ -170,8 +170,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     let divDeal = document.createElement('div')
                     let textDeal = document.createTextNode(`
                         取引種別：${val.Type || "不明"} 
-                        取引価格：${val.TradePrice}円
-                        坪単価：${val.PricePerUnit || "不明"}
+                        取引価格：${Number(val.TradePrice).toLocaleString()}円
+                        坪単価：${!isNaN(Number(val.PricePerUnit).toLocaleString()) ? Number(val.PricePerUnit).toLocaleString(): "不明"}
                         取引時期：${val.Period || "不明"}
                         `)
                     divDeal.appendChild(textDeal)
