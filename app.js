@@ -8,19 +8,6 @@ const weather_url = "https://api.openweathermap.org/data/2.5/weather?appid=";
 // api url 格納用セッションストレージ
 let storage = sessionStorage;
 
-const realEstateAPI = async () => {
-    const result = document.getElementById("result");
-    result.textContent = "通信中...";
-
-    const response = await fetch(REAL_ESTATE_URL, {method: "GET",});
-
-    if(response.status === 200) {
-        return Promise.resolve(response.json());
-    } else {
-        return Promise.reject((response.json().error));
-    };
-};
-
 // 天気情報をAPIから取得、欲しい情報だけ返す
 const getWeatherAPI = async (lat, lon) => {
     const api_url = `${weather_url}${storage["WEATHER_APPID"]}&lat=${lat}&lon=${lon}&lang=ja`;
