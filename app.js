@@ -11,7 +11,7 @@ let storage = sessionStorage;
 const realEstateAPI = async () => {
     const result = document.getElementById("result");
     result.textContent = "通信中...";
-    
+
     const response = await fetch(REAL_ESTATE_URL, {method: "GET",});
 
     if(response.status === 200) {
@@ -34,52 +34,35 @@ const getWeatherAPI = async (lat, lon) => {
             }
         })
         .then(res => {
-            const dataDict = { 
-                "weather": res.weather[0].description, 
+            const dataDict = {
+                "weather": res.weather[0].description,
                 "iconUrl": `https://openweathermap.org/img/wn/${res.weather[0].icon}@2x.png`,
                 "temperature": `${Math.round((res.main.temp-273.15)*10)/10}°C`
             };
             return Promise.resolve(dataDict)
         });
-    
+
     return promise
 }
 
 // ソート関数
-const sort = (real_estate_data) => {
-    let order_label = document.sort.order.value;
-    let data = real_estate_data.data;
-    const TERM_SORT = ["2021年第１四半期", "2021年第２四半期", "2021年第３四半期", "2021年第４四半期"];
+const sort = (resData) => {
+  const data = resData.data
+  let order_label = document.sort.order.value;
+  const TERM_SORT = ["2021年第１四半期", "2021年第２四半期", "2021年第３四半期", "2021年第４四半期"];
 
-    // セレクトボタンの値に応じてソートを変更
-    const promise = new Promise((resolve) => {
-        switch(order_label) {
-            case "deal-higher":
-                resolve(data.sort((x, y) => {
-                    return Number(y.TradePrice) - Number(x.TradePrice)
-                }));
-                break;
-            case "deal-lower":
-                resolve(data.sort((x, y) => {
-                    return Number(x.PriceTrade) - Number(y.PriceTrade)
-                }));
-                break;    
-            case "new":
-                resolve(data.sort((x, y) => {
-                    return TERM_SORT.indexOf(y.Period) - TERM_SORT.indexOf(x.Period)
-                }));
-                break;
-            case "old":
-                resolve(data.sort((x, y) => {
-                    return TERM_SORT.indexOf(x.Period) - TERM_SORT.indexOf(y.Period)
-                }));
-                break;
-            default :
-                resolve(data);
-                break;    
-        };
-    });
-    return promise;
+  switch(order_label){
+    case "deal-higher":
+      return data.sort((x, y) => {return Number(y.TradePrice) - Number(x.TradePrice)});
+    case "deal-lower":
+      return data.sort((x, y) => {return Number(x.PriceTrade) - Number(y.PriceTrade)});
+    case "new":
+        return data.sort((x, y) => {return TERM_SORT.indexOf(y.Period) - TERM_SORT.indexOf(x.Period)});
+    case "old":
+        return data.sort((x, y) => {return TERM_SORT.indexOf(x.Period) - TERM_SORT.indexOf(y.Period)});
+    default :
+        return data;
+  }
 };
 
 const loadYOLPJSONP = (addressQuery) => {
@@ -123,6 +106,90 @@ const getCoordinates = (data) => {
     return promise;
 };
 
+// 取引情報の各ボタンに天気を表示させるイベントを付与
+const addAPIEvent = (elem) => {
+  elem.addEventListener("click", () => {
+      // 緯度経度取得からの天気取得処理開始
+      Promise.resolve(loadYOLPJSONP(elem.value))
+          .then(getCoordinates)
+          .then(res => getWeatherAPI(res.lat, res.lon))
+          .then(res => {
+                  if (elem.parentNode.lastChild.className === "container weather") {
+                      elem.parentNode.removeChild(elem.parentNode.lastChild)
+                  };
+                  // 天気情報をボタンが押されたコンテナに追加
+                  let divWeather = document.createElement('div')
+                  divWeather.className = "container weather"
+
+                  let img = document.createElement("img")
+                  img.src = res.iconUrl
+                  let p = document.createElement("p")
+                  p.textContent = `天気：${res.weather} 気温：${res.temperature}`
+
+                  divWeather.appendChild(p)
+                  divWeather.appendChild(img)
+
+                  elem.parentNode.appendChild(divWeather)
+              },
+              err => {
+                  if (elem.parentNode.lastChild.className === "container weather") {
+                      elem.parentNode.removeChild(elem.parentNode.lastChild)
+                  };
+                  let divWeather = document.createElement('div')
+                  divWeather.className = "container weather"
+                  divWeather.textContent = "APIキーを正しく入力してください."
+
+                  elem.parentNode.appendChild(divWeather)
+                  console.log(err)
+              })})
+
+}
+
+const insertLandtransactionResultDOM = (data) => {
+  const result = document.getElementById("result");
+  let frag = document.createDocumentFragment();
+
+  result.innerHTML = '';
+  data.forEach((val, index) => {
+    // 全体のコンテナ要素を作成
+    let divContainer = document.createElement('div')
+    divContainer.className = "container"
+    // 見出し作成
+    let dealNumText = document.createTextNode(`
+        Num ${index+1} ------------------------------
+    `)
+    // 取引項目のコンテナ作成
+    let divDeal = document.createElement('div')
+    let textDeal = document.createTextNode(`
+        取引種別：${val.Type || "不明"}
+        取引価格：${Number(val.TradePrice).toLocaleString()}円
+        坪単価：${!isNaN(Number(val.PricePerUnit).toLocaleString()) ? Number(val.PricePerUnit).toLocaleString(): "不明"}
+        取引時期：${val.Period || "不明"}
+        `)
+    divDeal.appendChild(textDeal)
+    // 住所のコンテナ作成
+    let divAddress = document.createElement('div')
+    let textAddress = document.createTextNode(`
+        住所：${val.Prefecture}${val.Municipality}${val.DistrictName}
+        構造：${val.Structure || "不明"}
+        用途：${val.Purpose || "不明"}
+        `)
+    // 天気問合わせ用のボタンを作成
+    let button = document.createElement('button')
+    button.className = "show-weather"
+    button.value = `${val.Prefecture}${val.Municipality}${val.DistrictName}`
+    button.textContent = "この地点の天気を表示"
+    addAPIEvent(button)
+    divAddress.appendChild(textAddress)
+    divAddress.appendChild(button)
+    // 組み立て
+    divContainer.appendChild(dealNumText)
+    divContainer.appendChild(divDeal)
+    divContainer.appendChild(divAddress)
+    frag.appendChild(divContainer)
+  })
+  result.appendChild(frag)
+}
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -152,92 +219,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 出力ボタンが押された時の処理
     document.getElementById("button").addEventListener("click", () => {
-        const result = document.getElementById("result");
-        let frag = document.createDocumentFragment();
-        Promise.resolve(realEstateAPI())
-            .then(sort)
-            .then(res => {
-                result.innerHTML = '';
-                res.forEach((val, index) => {
-                    // 全体のコンテナ要素を作成
-                    let divContainer = document.createElement('div')
-                    divContainer.className = "container"
-                    // 見出し作成
-                    let dealNumText = document.createTextNode(`
-                        Num ${index+1} ------------------------------
-                    `)
-                    // 取引項目のコンテナ作成
-                    let divDeal = document.createElement('div')
-                    let textDeal = document.createTextNode(`
-                        取引種別：${val.Type || "不明"} 
-                        取引価格：${Number(val.TradePrice).toLocaleString()}円
-                        坪単価：${!isNaN(Number(val.PricePerUnit).toLocaleString()) ? Number(val.PricePerUnit).toLocaleString(): "不明"}
-                        取引時期：${val.Period || "不明"}
-                        `)
-                    divDeal.appendChild(textDeal)
-                    // 住所のコンテナ作成
-                    let divAddress = document.createElement('div')
-                    let textAddress = document.createTextNode(`
-                        住所：${val.Prefecture}${val.Municipality}${val.DistrictName}
-                        構造：${val.Structure || "不明"}
-                        用途：${val.Purpose || "不明"} 
-                        `)
-                    // 天気問合わせ用のボタンを作成
-                    let button = document.createElement('button')
-                    button.className = "show-weather"
-                    button.value = `${val.Prefecture}${val.Municipality}${val.DistrictName}`
-                    button.textContent = "この地点の天気を表示"
-                    addAPIEvent(button)
-                    divAddress.appendChild(textAddress)
-                    divAddress.appendChild(button)
-                    // 組み立て
-                    divContainer.appendChild(dealNumText)
-                    divContainer.appendChild(divDeal)
-                    divContainer.appendChild(divAddress)
-                    frag.appendChild(divContainer)
-                })
-                result.appendChild(frag)
-            });
+        fetch(REAL_ESTATE_URL, {method: "GET",})
+          .then(res => res.json())
+          .then(data => sort(data))
+          .then(insertLandtransactionResultDOM)
     });
-
-    // 取引情報の各ボタンに天気を表示させるイベントを付与
-    const addAPIEvent = (elem) => {
-        elem.addEventListener("click", () => {
-            // 緯度経度取得からの天気取得処理開始
-            Promise.resolve(loadYOLPJSONP(elem.value))
-                .then(getCoordinates)
-                .then(res => getWeatherAPI(res.lat, res.lon))
-                .then(res => {
-                        if (elem.parentNode.lastChild.className === "container weather") {
-                            elem.parentNode.removeChild(elem.parentNode.lastChild)
-                        };
-                        // 天気情報をボタンが押されたコンテナに追加
-                        let divWeather = document.createElement('div') 
-                        divWeather.className = "container weather"
-
-                        let img = document.createElement("img")
-                        img.src = res.iconUrl
-                        let p = document.createElement("p")
-                        p.textContent = `天気：${res.weather} 気温：${res.temperature}`
-
-                        divWeather.appendChild(p)
-                        divWeather.appendChild(img)
-
-                        elem.parentNode.appendChild(divWeather)
-                    },
-                    err => {
-                        if (elem.parentNode.lastChild.className === "container weather") {
-                            elem.parentNode.removeChild(elem.parentNode.lastChild)
-                        };
-                        let divWeather = document.createElement('div') 
-                        divWeather.className = "container weather"
-                        divWeather.textContent = "APIキーを正しく入力してください."
-
-                        elem.parentNode.appendChild(divWeather)
-                        console.log(err)
-                    })})
-            
-    }   
-
-
 }, false)
