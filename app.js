@@ -1,9 +1,9 @@
 // 京都市の2021年の不動産取引を問い合わせる API URL
 const REAL_ESTATE_URL = "https://www.land.mlit.go.jp/webland/api/TradeListSearch?from=20211&to=20214&city=26100";
 // Yahoo ジオコーダ API(住所から座標を取得する)
-const yahoo_geo_url = "https://map.yahooapis.jp/geocode/V1/geoCoder?output=json&appid=";
+const YAHOO_API_URL = "https://map.yahooapis.jp/geocode/V1/geoCoder?output=json&appid=";
 // 天気取得 API
-const weather_url = "https://api.openweathermap.org/data/2.5/weather?appid=";
+const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather?appid=";
 
 // api url 格納用セッションストレージ
 let storage = sessionStorage;
@@ -31,7 +31,7 @@ const realEstateAPI = () => {
 
 // 天気情報をAPIから取得、欲しい情報だけ返す
 const getWeatherAPI = (lat, lon) => {
-    const api_url = `${weather_url}${storage["WEATHER_APPID"]}&lat=${lat}&lon=${lon}&lang=ja`;
+    const api_url = `${WEATHER_API_URL}${storage["WEATHER_APPID"]}&lat=${lat}&lon=${lon}&lang=ja`;
     let xhr = new XMLHttpRequest();
     xhr.open("GET", api_url);
     xhr.send();
@@ -84,7 +84,7 @@ const loadYOLPJSONP = (addressQuery) => {
     };
     const encodeQuery = encodeURIComponent(addressQuery);
     var callbackName = 'jsonpCallback' + Math.random().toString(16).slice(2);
-    const api_url = `${yahoo_geo_url}${storage["YAHOO_APPID"]}&query=${encodeQuery}&callback=${callbackName}`;
+    const api_url = `${YAHOO_API_URL}${storage["YAHOO_APPID"]}&query=${encodeQuery}&callback=${callbackName}`;
     var script = document.createElement('script');
     script.src = api_url;
     document.body.appendChild(script);
@@ -108,14 +108,10 @@ const loadYOLPJSONP = (addressQuery) => {
 // yahoo api のデータから 緯度と経度を取得
 const getCoordinates = (data) => {
     const coordinates = data.Feature[0].Geometry.Coordinates.split(",");
-    const promise = new Promise((resolve) => {
-        const dataDict = {
-            "lat": coordinates[1],
-            "lon": coordinates[0]
-        }
-        resolve(dataDict)
-    });
-    return promise;
+    return {
+        "lon": coordinates[0],
+        "lat": coordinates[1],
+    };
 };
 
 
@@ -230,8 +226,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 出力ボタンが押された時の処理
     document.getElementById("button").addEventListener("click", () => {
-        const result = document.getElementById("result");
-        let frag = document.createDocumentFragment();
         Promise.resolve(realEstateAPI())
             .then(data => sort(data))
             .then(insertLandTransactionResultDOM);
