@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <article>
+    <section>
+      <p>天気を表示させるには以下のAPIキーをセットしてください.</p>
+      <div></div>
+    </section>
+    <section>
+      <p>取引情報を表示させるにはソート情報を指定し、結果を出力ボタンを押してください.</p>
+      <div>
+        <select name="sort" id="sort">
+          <option value="desc">取引価格が高い順</option>
+          <option value="asc">取引価格が安い順</option>
+          <option value="newer">新しい取引順</option>
+          <option value="older">古い取引順</option>
+        </select>
+      </div>
+      <div>
+        <button id="result">結果を出力</button>
+      </div>
+    </section>  
+  </article>
+</body>
+</html>
