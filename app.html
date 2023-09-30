@@ -10,22 +10,27 @@
   <article>
     <section>
       <p>天気を表示させるには以下のAPIキーをセットしてください.</p>
-      <div></div>
+      <input id="yahoo" type="text" placeholder="yahoo api appID">
+      <input id="weather" type="text" placeholder="Open Weather Map API appID">
+      <button id="set">APIキーをセット</button>
+      <button id="reset">リセット</button>
     </section>
     <section>
       <p>取引情報を表示させるにはソート情報を指定し、結果を出力ボタンを押してください.</p>
       <div>
         <select name="sort" id="sort">
-          <option value="desc">取引価格が高い順</option>
+          <option name="sort" value="desc">取引価格が高い順</option>
           <option value="asc">取引価格が安い順</option>
           <option value="newer">新しい取引順</option>
           <option value="older">古い取引順</option>
         </select>
       </div>
       <div>
-        <button id="result">結果を出力</button>
+        <button id="output">結果を出力</button>
       </div>
-    </section>  
+    </section>
+    <section id="result"></section>
   </article>
+  <script src="app.js"></script>
 </body>
 </html>
