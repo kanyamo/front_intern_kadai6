@@ -59,7 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
   //APIキーのリセット
   resetApiKey(set_bttn, reset_bttn, storage);
   //不動産取引の結果を表示
-  showEstateData();
+  document.getElementById('output').addEventListener(
+    'click',
+    showEstateData,
+    false
+  );
 }, false);
 ```
 これは、 `setApiKey` 関数や `resetApiKey` 関数にも同様の変更を加えたほうがいいとは思います。
@@ -70,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 `Promise` を使うことで、 `addEventListener` のコールバック地獄を避けることができます。
 
 ```js
-async function fetchEstateData(url) {
+async function showEstateData(url) {
   const result = document.getElementById('result');
 
   try {
@@ -158,3 +162,4 @@ JavaScriptでは、変数名にキャメルケースを使うのが一般的で�
 - 各ファイルの最後の行は空行にするのが一般的です。
 - `showEstateData` 関数の中で宣言されている `data` は、 `addEventListener` の中で宣言し、 `const` とするべきです。
 - htmlファイルの `title` タグの中身を何かページの内容を表すものに変更したほうがいいと思います。
+- typoを修正しました。（'adress' -> 'address'）
