@@ -145,15 +145,15 @@ function createDataList(data) {
 //各地点の天気を表示する関数
 function showWeather(index, pref, muni, dist) {
   //ボタンに対応する住所を取得
-  let adress;
+  let address;
   if(dist.includes('学区')) {
-    adress = pref + muni;
+    address = pref + muni;
   } else {
-    adress = pref + muni + dist;
+    address = pref + muni + dist;
   }
   //ストレージから値を取得し、問い合わせURLを作成
   const YAHOO_APPID = storage.getItem('YAHOO_APPID');
-  const yahoo_url = `${YAHOO_API_URL}?appid=${YAHOO_APPID}&query=${encodeURIComponent(adress)}&output=json&callback=getCoordinates`;
+  const yahoo_url = `${YAHOO_API_URL}?appid=${YAHOO_APPID}&query=${encodeURIComponent(address)}&output=json&callback=getCoordinates`;
   //Yahoo!ジオコーダAPIキーと住所からその地点の緯度・経度を取得
   loadJSONP(yahoo_url, 'getCoordinates')
   .then((response) => {
